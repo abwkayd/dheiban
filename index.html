@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مخبر البديع للتحاليل الطبية</title>
+    <!-- FontAwesome للأيقونات الطبية -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- خط تجوال العربي -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات Firebase السحابية للربط الفوري -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #0288d1;
+            --primary-light: #e1f5fe;
+            --primary-dark: #01579b;
+            --accent-red: #880e4f;
+            --bg-color: #f0f8ff;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 4px 20px rgba(2, 136, 209, 0.12);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 130px;
+            min-height: 100vh;
+            background-image: radial-gradient(#b3e5fc 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        /* الهيدر الرئيسي */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            color: #e1f5fe;
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            padding: 15px;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* الأقسام / الصفحات */
+        .page {
+            display: none !important;
+        }
+
+        .page.active {
+            display: block !important;
+        }
+
+        /* البطاقات الفخمة */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(2, 136, 209, 0.15);
+        }
+
+        .card-title {
+            color: var(--accent-red);
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2.5px solid #ffebee;
+            padding-bottom: 8px;
+        }
+
+        /* بطاقة الكادر الطبي */
+        .staff-box {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        @media(min-width: 450px) {
+            .staff-box {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .staff-card {
+            background: #f0f9ff;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1.5px dashed var(--primary-color);
+        }
+
+        .staff-card i {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        .staff-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            margin-bottom: 3px;
+        }
+
+        .staff-card p {
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            font-weight: 800;
+        }
+
+        /* الأجهزة الطبية */
+        .device-item {
+            background: #f8fbfe;
+            border: 1px solid #b3e5fc;
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .device-item i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            background: #e1f5fe;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .device-info h4 {
+            font-size: 0.95rem;
+            color: var(--accent-red);
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .device-info p {
+            font-size: 0.82rem;
+            color: #555;
+        }
+
+        /* باقات التحاليل */
+        .pkg-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1.5px solid #b3e5fc;
+            position: relative;
+        }
+
+        .pkg-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--accent-red);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .pkg-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .pkg-header i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            background: #e1f5fe;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .pkg-header h3 {
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .pkg-list {
+            list-style: none;
+            margin-bottom: 15px;
+            background: #f8fbfe;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e1f5fe;
+        }
+
+        .pkg-list li {
+            font-size: 0.85rem;
+            padding: 6px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px dashed #e0f2fe;
+        }
+
+        .pkg-list li:last-child {
+            border-bottom: none;
+        }
+
+        .pkg-list li i {
+            color: var(--primary-color);
+            font-size: 0.8rem;
+        }
+
+        .btn-pkg {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* قسم اتصل بنا */
+        .contact-box {
+            background: #f8fbfe;
+            border: 1.5px solid #b3e5fc;
+            padding: 15px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .contact-info i {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            background: #e1f5fe;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .contact-info div span {
+            font-size: 0.8rem;
+            color: #666;
+            display: block;
+        }
+
+        .contact-info div strong {
+            font-size: 1.1rem;
+            color: var(--accent-red);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-copy {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* النماذج */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 700;
+            color: var(--accent-red);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid #b3e5fc;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+            background: #fff;
+            color: #333;
+        }
+
+        .tests-multi-select {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1.5px solid #b3e5fc;
+            border-radius: 12px;
+            padding: 10px;
+            background: #ffffff;
+        }
+
+        .test-option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e1f5fe;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+
+        .test-option-item.pkg-option-header {
+            background-color: #e1f5fe;
+            font-weight: bold;
+            color: var(--primary-dark);
+            border-radius: 6px;
+            margin: 4px 0;
+        }
+
+        .test-option-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .users-counter-card {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 2px solid var(--primary-color);
+            border-radius: 14px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .admin-item-box {
+            background: #f8fbfe;
+            border: 1px solid #b3e5fc;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        /* رسائل المرضى والردود */
+        .msg-bubble {
+            background: #f0f9ff;
+            border: 1px solid #b3e5fc;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .msg-reply {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-top: 6px;
+            font-size: 0.82rem;
+            color: #2e7d32;
+        }
+
+        /* شريط التنقل السفلي */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 5px 20px 5px;
+            box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.18);
+            border-top-left-radius: 22px;
+            border-top-right-radius: 22px;
+            z-index: 2147483647;
+            pointer-events: auto !important;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            outline: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #777;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 16%;
+            padding: 6px 0;
+            pointer-events: auto !important;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        .nav-btn i, .nav-btn span {
+            pointer-events: none;
+        }
+
+        .nav-btn i {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-btn.active {
+            color: var(--accent-red);
+            font-weight: 800;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 10px;
+            background: #d4edda;
+            color: #155724;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1><i class="fa-solid fa-vial-virus"></i> مخبر البديع</h1>
+        <p>للتحاليل الطبية والتشخيص الدقيق</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. الرئيسية والأجهزة -->
+        <div id="home-page" class="page active">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-hospital-user"></i>
+                    الكادر الطبي للمخبر
+                </div>
+                <div class="staff-box">
+                    <div class="staff-card">
+                        <i class="fa-solid fa-user-doctor"></i>
+                        <h3>الدكتور</h3>
+                        <p>بديع الشوين</p>
+                    </div>
+                    <div class="staff-card">
+                        <i class="fa-solid fa-microscope"></i>
+                        <h3>المخبري</h3>
+                        <p>بديع خير الله</p>
+                    </div>
+                    <div class="staff-card">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <h3>المخبري</h3>
+                        <p>نهاد السليمان</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- قائمة الأجهزة الطبية الحديثة -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-microchip"></i>
+                    قائمة الأجهزة الطبية المتطورة
+                </div>
+                
+                <div class="device-item">
+                    <i class="fa-solid fa-droplet"></i>
+                    <div class="device-info">
+                        <h4>جهاز الدمويات (Celltac a - 2026)</h4>
+                        <p>جهاز NIHON KOHDEN الياباني الأصلي لتحليل الدم الشامل.</p>
+                    </div>
+                </div>
+
+                <div class="device-item">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <div class="device-info">
+                        <h4>جهاز الكيمياء الحيوية الآلي</h4>
+                        <p>Bio System المتقدم لإجراء الفحوصات الكيميائية.</p>
+                    </div>
+                </div>
+
+                <div class="device-item">
+                    <i class="fa-solid fa-laptop-medical"></i>
+                    <div class="device-info">
+                        <h4>جهاز الكيمياء الحيوية نصف الآلي</h4>
+                        <p>Photometer 4040 الألماني عالي الدقة.</p>
+                    </div>
+                </div>
+
+                <div class="device-item">
+                    <i class="fa-solid fa-bolt"></i>
+                    <div class="device-info">
+                        <h4>جهاز شوارد الدم</h4>
+                        <p>SENSA CORE ST200 الهندي لفحص الشوارد والأملاح.</p>
+                    </div>
+                </div>
+
+                <div class="device-item">
+                    <i class="fa-solid fa-dna"></i>
+                    <div class="device-info">
+                        <h4>أجهزة هرمونات الجسم المتطورة</h4>
+                        <p>• iCHROMA II<br>• Fine care lll plus</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. باقات التحاليل الطبية -->
+        <div id="packages-page" class="page">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="color: var(--accent-red); font-size: 1.3rem; font-weight: 800;">باقات التحاليل الطبية المعتمدة</h2>
+                <p style="font-size: 0.85rem; color: #666;">اختر الباقة المناسبة لحجز موعدك</p>
+            </div>
+
+            <!-- الباقات الجديدة -->
+            <div class="pkg-card">
+                <span class="pkg-badge">صحة العظام</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-bone"></i>
+                    <h3>باقة صحة العظام</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> الكالسيوم الكلي (Total Calcium)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> فيتامين د (25-OH Vitamin D)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> الفوسفور (Phosphorus)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون الغدة الجار درقية (PTH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> الفوسفاتاز القلوي (Alkaline Phosphatase)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة العظام')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">صحة المفاصل</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-child-reaching"></i>
+                    <h3>باقة صحة المفاصل</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> عامل الروماتويد (RF)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> حمض اليوريك (Uric Acid)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> بروتين سي التفاعلي (CRP)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> سرعة ترسب الدم (ESR)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> مضاد سي سي بي (Anti-CCP)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة المفاصل')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">نمو صحي وآمن</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-child"></i>
+                    <h3>باقة صحة النمو للأطفال</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون النمو</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون الغدة الدرقية (TSH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> فيتامين د</li>
+                    <li><i class="fa-solid fa-circle-check"></i> الكالسيوم والمغنيسيوم</li>
+                    <li><i class="fa-solid fa-circle-check"></i> صورة دم كاملة (CBC)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة النمو للأطفال')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">تقييم الخصوبة</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-venus-mars"></i>
+                    <h3>باقة الخصوبة للرجال</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> تحليل السائل المنوي (Semen Analysis)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون التستوستيرون الكلي والحر</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون (FSH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون (LH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون البرولاكتين (Prolactin)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة الخصوبة للرجال')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <!-- الباقات القديمة الـ 6 -->
+            <div class="pkg-card">
+                <span class="pkg-badge">الأكثر طلباً</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-microscope"></i>
+                    <h3>باقة الفحص الشامل</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> صورة دم كاملة (CBC)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> السكر التراكمي (HbA1c)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> وظائف الكلى والكبد</li>
+                    <li><i class="fa-solid fa-circle-check"></i> الدهون والكوليسترول</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة الفحص الشامل')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">التوازن الهرموني</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-dna"></i>
+                    <h3>باقة صحة الغدد</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون تحفيز الغدة الدرقية (TSH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون الكورتيزول (Cortisol)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون الأنسولين الصائم</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة الغدد')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">توازن السوائل</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-flask"></i>
+                    <h3>باقة صحة سوائل الجسم</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> تحليل الكهَارل (الصوديوم، البوتاسيوم)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> وظائف الكلى (الكرياتينين، اليوريا)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> تحليل البول الشامل</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة سوائل الجسم')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">الصحة الإنجابية</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-venus"></i>
+                    <h3>باقة صحة الإنجاب للنساء</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون الاستروجين (Estradiol - E2)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون (FSH) وهرمون (LH)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> هرمون البرولاكتين ومخزون المبيض (AMH)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة الإنجاب للنساء')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">صحة القلب</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <h3>باقة صحة القلب</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> صورة الدهون الكاملة (Lipid Profile)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> السكر الصائم (FBS)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> بروتين سي التفاعلي عالي الحساسية (hs-CRP)</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة صحة القلب')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+
+            <div class="pkg-card">
+                <span class="pkg-badge">المناعة والطاقة</span>
+                <div class="pkg-header">
+                    <i class="fa-solid fa-shield-virus"></i>
+                    <h3>باقة الفيتامينات والمناعة</h3>
+                </div>
+                <ul class="pkg-list">
+                    <li><i class="fa-solid fa-circle-check"></i> فيتامين د (Vitamin D)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> فيتامين ب12 (Vitamin B12)</li>
+                    <li><i class="fa-solid fa-circle-check"></i> الزنك والحديد وصورة الدم</li>
+                </ul>
+                <button class="btn-pkg" onclick="switchTab('booking-page', 'nav-book'); bookSpecificPackage('باقة الفيتامينات والمناعة')"><i class="fa-solid fa-calendar-check"></i> احجز هذه الباقة</button>
+            </div>
+        </div>
+
+        <!-- 3. حجز موعد مع قائمة الاختيار المتعدد كاملة (تحاليل + باقات) -->
+        <div id="booking-page" class="page">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    حجز موعد تحليل
+                </div>
+                <div id="booking-alert" class="alert">تم تقديم طلب الحجز بنجاح وإرساله للمخبر فوراً!</div>
+                <form id="booking-form">
+                    
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user-md"></i> 1. اسم الطبيب المحيل (اختياري)</label>
+                        <input type="text" id="doctor-name" class="form-control" placeholder="أدخل اسم الطبيب المعالج إن وجد">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user"></i> 2. اسم المريض الثلاثي</label>
+                        <input type="text" id="patient-name" class="form-control" placeholder="أدخل اسمك الكامل" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone"></i> رقم الهاتف</label>
+                        <input type="tel" id="patient-phone" class="form-control" placeholder="09xxxxxxxx" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-vials"></i> 3. اختر التحاليل أو الباقات المطلوبة:</label>
+                        <div class="tests-multi-select">
+                            <!-- التحاليل الرئيسية في بداية القائمة -->
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CBC"> CBC (صورة الدم الكاملة)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="TSH"> TSH (هرمون الغدة الدرقية)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="فيتامين D3"> فيتامين D3 (Vitamin D3)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="فيتامين B12"> فيتامين B12 (Vitamin B12)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CRP"> CRP (بروتين سي التفاعلي)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="WBC"> WBC (كريات الدم البيضاء)</label>
+                            
+                            <!-- قسم الباقات الطبية المعتمدة -->
+                            <div class="test-option-item pkg-option-header"><i class="fa-solid fa-boxes-packing"></i> --- الباقات الطبية الكاملة ---</div>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة العظام"> باقة صحة العظام</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة المفاصل"> باقة صحة المفاصل</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة النمو للأطفال"> باقة صحة النمو للأطفال</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة الخصوبة للرجال"> باقة الخصوبة للرجال</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة الفحص الشامل"> باقة الفحص الشامل</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة الغدد"> باقة صحة الغدد</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة سوائل الجسم"> باقة صحة سوائل الجسم</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة الإنجاب للنساء"> باقة صحة الإنجاب للنساء</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة صحة القلب"> باقة صحة القلب</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="باقة الفيتامينات والمناعة"> باقة الفيتامينات والمناعة</label>
+
+                            <!-- بقية الفحوصات الفردية -->
+                            <div class="test-option-item pkg-option-header"><i class="fa-solid fa-vial"></i> --- الفحوصات الطبية المباشرة ---</div>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="HP"> HP</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="RBC"> RBC</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="RBC MCV"> RBC MCV</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PLT"> PLT</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Bleeding Time"> Bleeding Time</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Coagulation Time"> Coagulation Time</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Blood Film"> Blood Film</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Cross Matching"> Cross Matching</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PT/INR"> PT/INR</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PTTk"> PTTk</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Widal"> Widal</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Wright"> Wright</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CRP hs"> CRP hs</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Helicobacter (serum)"> Helicobacter (serum)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Helicobacter (STOOL)"> Helicobacter (STOOL)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Fe"> Fe</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Ca"> Ca</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Ca++"> Ca++</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="P"> P</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Mg"> Mg</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Cl"> Cl</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Na"> Na</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="K"> K</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Glucose Random"> Glucose Random</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Uric Acid"> Uric Acid</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Triglycerides"> Triglycerides</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Cholesterol"> Cholesterol</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="HDL"> HDL</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="LDL"> LDL</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="LDH"> LDH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="TP"> TP</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="T.Proteins"> T.Proteins</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Albumin"> Albumin</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Globulin"> Globulin</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="ALP"> ALP</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="ALT( SGPT )"> ALT( SGPT )</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="AST( SGOT)"> AST( SGOT)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Bilirubin T/D"> Bilirubin T/D</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Amylase"> Amylase</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Lipase"> Lipase</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CK MB"> CK MB</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CK"> CK</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="TIBC"> TIBC</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="RF"> RF</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="ASLO"> ASLO</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Pregnancy (serum/Urine)"> Pregnancy (serum/Urine)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Protein in Random Urine"> Protein in Random Urine</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Creatinine (Random Urine)"> Creatinine (Random Urine)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Callpro tecten in STOOL"> Callpro tecten in STOOL</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Occult Blood in STOOL"> Occult Blood in STOOL</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Urine Test"> Urine Test</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="STOOL Test"> STOOL Test</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Urine Culture"> Urine Culture</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Urine in 24 hs"> Urine in 24 hs</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Zn"> Zn</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Cortisol (8AM/8PM)"> Cortisol (8AM/8PM)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CSF"> CSF</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Semen"> Semen</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="FSH"> FSH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PRL"> PRL</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="LH"> LH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PSA"> PSA</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Free PSA"> Free PSA</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="FT4"> FT4</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="T3"> T3</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="T4"> T4</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="B HCG"> B HCG</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="AMH"> AMH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Ferritin"> Ferritin</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Testo"> Testo</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Toxo G/M"> Toxo G/M</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Rubella (G/M)"> Rubella (G/M)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CMV (G/M)"> CMV (G/M)</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Anti_HAV"> Anti_HAV</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Anti CCP"> Anti CCP</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="TPO"> TPO</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Plasma"> Plasma</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Aldosterone"> Aldosterone</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Progesterone"> Progesterone</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="HBsAg"> HBsAg</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Anti _HCV"> Anti _HCV</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Folat"> Folat</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="IgE"> IgE</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="فوسفولبيد"> فوسفوليبيد</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CEA"> CEA</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CA_125"> CA_125</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="CA 19_9"> CA 19_9</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PCT"> PCT</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="أندوميزيوم"> أندوميزيوم</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="G6PD"> G6PD</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="E2"> E2</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="S"> S</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="كارديو لبيد"> كارديوليبيد</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="D- Dimer"> D-Dimer</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Trans"> Trans</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Troponin I"> Troponin I</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="Troponin T"> Troponin T</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="PTH"> PTH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="GGT"> GGT</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="ACTH"> ACTH</label>
+                            <label class="test-option-item"><input type="checkbox" name="lab_tests" value="سلين مصلي"> سلين مصلي</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-clock"></i> التاريخ والوقت المفضل</label>
+                        <input type="datetime-local" id="appointment-date" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn"><i class="fa-solid fa-paper-plane"></i> تأكيد الحجز</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4. محادثة خاصة مع المدير -->
+        <div id="chat-page" class="page">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-comments"></i>
+                    محادثة خاصة مع الإدارة
+                </div>
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 12px;">أدخل رقم هاتفك واسمك لتتمكن من رؤية رسائلك وردود الإدارة الخاصة بك فقط.</p>
+                <div id="chat-alert" class="alert">تم إرسال رسالتك للمدير بنجاح!</div>
+                
+                <form id="chat-form">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone"></i> رقم هاتفك (المعرف الخاص بك)</label>
+                        <input type="tel" id="user-identifier-phone" class="form-control" placeholder="09xxxxxxxx" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user"></i> اسمك الكريم</label>
+                        <input type="text" id="chat-name" class="form-control" placeholder="اكتب اسمك هنا" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-message"></i> نص الرسالة أو الاستفسار</label>
+                        <textarea id="chat-msg" class="form-control" rows="3" placeholder="اكتب رسالتك للمدير..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn"><i class="fa-solid fa-paper-plane"></i> إرسال للمدير</button>
+                </form>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="font-size: 0.95rem; color: var(--accent-red); margin-bottom: 10px;">رسائلك والردود الواردة لك فقط:</h4>
+                    <div id="user-my-chats">اكتب رقم هاتفك واسمك بالأعلى وقم بإرسال رسالة لتظهر رسائلك هنا...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. قسم اتصل بنا -->
+        <div id="contact-page" class="page">
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-location-dot"></i> موقع المخبر</div>
+                <p style="font-size: 0.95rem; line-height: 1.8; color: #444;">
+                    <strong>الميادين - قبل مشفى نوري السعيد على بعد 200 متر شرق</strong>
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-address-book"></i> معلومات التواصل</div>
+                <div class="contact-box">
+                    <div class="contact-info">
+                        <i class="fa-solid fa-phone-volume"></i>
+                        <div>
+                            <span>رقم هاتف المخبر</span>
+                            <strong id="lab-phone-text">0953500190</strong>
+                        </div>
+                    </div>
+                    <button class="btn-copy" id="copy-btn">نسخ الرقم</button>
+                </div>
+                <div id="copy-alert" class="alert" style="margin-top: 10px;">تم نسخ الرقم بنجاح!</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-clock"></i> أوقات الدوام</div>
+                <p style="font-size: 0.95rem; line-height: 1.8; color: #444;">
+                    <strong>أيام الأسبوع عدا الجمعة:</strong> 8:00 صباحاً - 4:00 مساءً
+                </p>
+            </div>
+        </div>
+
+        <!-- 6. الإعدادات والآدمن -->
+        <div id="settings-page" class="page">
+            <div class="card" id="admin-login-card">
+                <div class="card-title"><i class="fa-solid fa-lock"></i> لوحة تحكم المدير</div>
+                <div class="form-group">
+                    <label>كلمة مرور المدير:</label>
+                    <input type="password" id="admin-pass" class="form-control" placeholder="أدخل كلمة المرور">
+                </div>
+                <button class="btn" id="admin-login-btn">دخول لوحة التحكم</button>
+            </div>
+
+            <div class="card" id="admin-panel" style="display:none;">
+                <div class="card-title"><i class="fa-solid fa-user-shield"></i> لوحة إدارة المخبر الفورية</div>
+                
+                <div class="users-counter-card">
+                    <div class="users-counter-info">
+                        <i class="fa-solid fa-users"></i>
+                        <div>
+                            <span style="font-size:0.85rem; color:#555; display:block;">إجمالي زيارات التطبيق</span>
+                            <span class="users-counter-val" id="app-users-count">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" id="admin-logout-btn" style="background:#6c757d; margin-bottom:15px;">تسجيل الخروج</button>
+                
+                <h4 style="color:var(--accent-red); margin-bottom:8px;">حجوزات المرضى الواردة:</h4>
+                <div id="admin-appointments">جاري التحميل...</div>
+
+                <h4 style="color:var(--accent-red); margin: 15px 0 8px 0;">جميع رسائل المرضى والرد عليها (لوحة التحكم):</h4>
+                <div id="admin-chats-list">جاري التحميل...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <nav class="nav-bar">
+        <button class="nav-btn active" id="nav-home" onclick="switchTab('home-page', 'nav-home')">
+            <i class="fa-solid fa-house-medical"></i>
+            <span>الرئيسية</span>
+        </button>
+        <button class="nav-btn" id="nav-pkg" onclick="switchTab('packages-page', 'nav-pkg')">
+            <i class="fa-solid fa-boxes-packing"></i>
+            <span>الباقات</span>
+        </button>
+        <button class="nav-btn" id="nav-book" onclick="switchTab('booking-page', 'nav-book')">
+            <i class="fa-solid fa-calendar-plus"></i>
+            <span>حجز موعد</span>
+        </button>
+        <button class="nav-btn" id="nav-chat" onclick="switchTab('chat-page', 'nav-chat')">
+            <i class="fa-solid fa-comments"></i>
+            <span>الرسائل</span>
+        </button>
+        <button class="nav-btn" id="nav-contact" onclick="switchTab('contact-page', 'nav-contact')">
+            <i class="fa-solid fa-address-book"></i>
+            <span>اتصل بنا</span>
+        </button>
+        <button class="nav-btn" id="nav-settings" onclick="switchTab('settings-page', 'nav-settings')">
+            <i class="fa-solid fa-gear"></i>
+            <span>الإعدادات</span>
+        </button>
+    </nav>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://badi-lab-default-rtdb.firebaseio.com/"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        var visitsRef = db.ref('app_visits');
+        visitsRef.transaction(function(currentVisits) {
+            return (currentVisits || 0) + 1;
+        });
+        visitsRef.on('value', function(snapshot) {
+            var countEl = document.getElementById('app-users-count');
+            if(countEl) countEl.innerText = snapshot.val() || 1;
+        });
+
+        function switchTab(pageId, btnTarget) {
+            var pages = document.querySelectorAll('.page');
+            pages.forEach(function(p) { p.classList.remove('active'); });
+            
+            var targetPage = document.getElementById(pageId);
+            if(targetPage) { targetPage.classList.add('active'); }
+
+            var buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(function(b) { b.classList.remove('active'); });
+
+            if (typeof btnTarget === 'string') {
+                var btnEl = document.getElementById(btnTarget);
+                if (btnEl) btnEl.classList.add('active');
+            } else if (btnTarget && btnTarget.classList) {
+                btnTarget.classList.add('active');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(pageId === 'chat-page') { 
+                var savedPhone = localStorage.getItem('user_chat_phone');
+                if(savedPhone) {
+                    var phoneInput = document.getElementById('user-identifier-phone');
+                    if(phoneInput) phoneInput.value = savedPhone;
+                    loadUserChats(savedPhone);
+                }
+            }
+        }
+
+        // إرسال الحجز
+        var bookingForm = document.getElementById('booking-form');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var docName = document.getElementById('doctor-name').value;
+                var patientName = document.getElementById('patient-name').value;
+                var phone = document.getElementById('patient-phone').value;
+                var date = document.getElementById('appointment-date').value;
+                
+                var selectedTests = [];
+                document.querySelectorAll('input[name="lab_tests"]:checked').forEach(function(cb) {
+                    selectedTests.push(cb.value);
+                });
+
+                var bookingData = {
+                    doctor: docName || 'بدون',
+                    patient: patientName,
+                    phone: phone,
+                    tests: selectedTests.join(', '),
+                    date: date,
+                    timestamp: Date.now()
+                };
+
+                db.ref('appointments').push(bookingData, function(error) {
+                    if (!error) {
+                        var alertBox = document.getElementById('booking-alert');
+                        if (alertBox) alertBox.style.display = 'block';
+                        bookingForm.reset();
+                        setTimeout(function() { if (alertBox) alertBox.style.display = 'none'; }, 4000);
+                    } else {
+                        alert('حدث خطأ أثناء الإرسال.');
+                    }
+                });
+            });
+        }
+
+        // إرسال رسالة المريض مع حفظ رقم الهاتف في الذاكرة المحلية
+        var chatForm = document.getElementById('chat-form');
+        if (chatForm) {
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var phone = document.getElementById('user-identifier-phone').value;
+                var name = document.getElementById('chat-name').value;
+                var msg = document.getElementById('chat-msg').value;
+
+                localStorage.setItem('user_chat_phone', phone);
+
+                var chatData = {
+                    phone: phone,
+                    name: name,
+                    message: msg,
+                    reply: "",
+                    timestamp: Date.now()
+                };
+
+                db.ref('chats').push(chatData, function(error) {
+                    if (!error) {
+                        var alertBox = document.getElementById('chat-alert');
+                        if (alertBox) alertBox.style.display = 'block';
+                        document.getElementById('chat-msg').value = '';
+                        setTimeout(function() { if (alertBox) alertBox.style.display = 'none'; }, 4000);
+                        loadUserChats(phone);
+                    }
+                });
+            });
+        }
+
+        // تحميل رسائل هذا المريض فقط بناءً على رقم هاتفه
+        function loadUserChats(userPhone) {
+            db.ref('chats').on('value', function(snapshot) {
+                var container = document.getElementById('user-my-chats');
+                if (!container) return;
+                container.innerHTML = '';
+                var hasMessages = false;
+                
+                if(!snapshot.exists()) {
+                    container.innerHTML = '<p style="color:#666;">لا توجد رسائل سابقة.</p>';
+                    return;
+                }
+
+                snapshot.forEach(function(childSnapshot) {
+                    var data = childSnapshot.val();
+                    if(data.phone === userPhone) {
+                        hasMessages = true;
+                        var div = document.createElement('div');
+                        div.className = 'msg-bubble';
+                        var replyHtml = data.reply ? `<div class="msg-reply"><i class="fa-solid fa-reply"></i> <strong>رد الإدارة:</strong> ${data.reply}</div>` : `<div style="color:#888; font-size:0.75rem; margin-top:4px;">(بانتظار رد الإدارة...)</div>`;
+                        div.innerHTML = `<strong>${data.name}:</strong> ${data.message} ${replyHtml}`;
+                        container.appendChild(div);
+                    }
+                });
+
+                if(!hasMessages) {
+                    container.innerHTML = '<p style="color:#666;">لا توجد رسائل مسجلة برقم الهاتف هذا.</p>';
+                }
+            });
+        }
+
+        // إرسال رد الآدمن لكل رسالة
+        window.sendAdminReply = function(chatId) {
+            var inputElement = document.getElementById('reply-input-' + chatId);
+            if(!inputElement) {
+                alert('حدث خطأ في تحديد خانة الإدخال');
+                return;
+            }
+            var replyText = inputElement.value;
+            if(!replyText) {
+                alert('الرجاء كتابة الرد أولاً');
+                return;
+            }
+            db.ref('chats/' + chatId).update({ reply: replyText }, function(error) {
+                if(!error) {
+                    alert('تم إرسال الرد بنجاح!');
+                } else {
+                    alert('فشل في إرسال الرد.');
+                }
+            });
+        };
+
+        // تحميل لوحة تحكم الأدمن (مع عرض اسم الطبيب في الحجوزات)
+        function loadAdminData() {
+            db.ref('appointments').on('value', function(snapshot) {
+                var container = document.getElementById('admin-appointments');
+                if (!container) return;
+                container.innerHTML = '';
+                if(!snapshot.exists()) {
+                    container.innerHTML = '<p style="color:#666;">لا توجد حجوزات حالياً.</p>';
+                    return;
+                }
+                snapshot.forEach(function(childSnapshot) {
+                    var data = childSnapshot.val();
+                    var div = document.createElement('div');
+                    div.className = 'admin-item-box';
+                    div.innerHTML = `
+                        <strong>الطبيب المحيل:</strong> <span style="color:var(--accent-red);">${data.doctor || 'بدون'}</span><br>
+                        <strong>المريض:</strong> ${data.patient} <br>
+                        <strong>الهاتف:</strong> ${data.phone} <br>
+                        <strong>التحاليل:</strong> ${data.tests} <br>
+                        <strong>الموعد:</strong> ${data.date}
+                    `;
+                    container.appendChild(div);
+                });
+            });
+
+            db.ref('chats').on('value', function(snapshot) {
+                var container = document.getElementById('admin-chats-list');
+                if (!container) return;
+                container.innerHTML = '';
+                if(!snapshot.exists()) {
+                    container.innerHTML = '<p style="color:#666;">لا توجد رسائل حالياً.</p>';
+                    return;
+                }
+                snapshot.forEach(function(childSnapshot) {
+                    var chatId = childSnapshot.key;
+                    var data = childSnapshot.val();
+                    var div = document.createElement('div');
+                    div.className = 'admin-item-box';
+                    div.innerHTML = `
+                        <strong>المرسل:</strong> ${data.name} (<span style="color:var(--primary-color);">${data.phone || 'بدون رقم'}</span>) <br>
+                        <strong>الرسالة:</strong> ${data.message} <br>
+                        <div style="margin-top: 8px; display: flex; gap: 5px;">
+                            <input type="text" id="reply-input-${chatId}" class="form-control" placeholder="اكتب ردك هنا..." value="${data.reply || ''}" style="padding:6px; font-size:0.85rem;">
+                            <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="sendAdminReply('${chatId}')">إرسال رد</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var copyBtn = document.getElementById('copy-btn');
+            if(copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    var phoneText = document.getElementById('lab-phone-text').innerText;
+                    navigator.clipboard.writeText(phoneText).then(function() {
+                        var alertBox = document.getElementById('copy-alert');
+                        if (alertBox) {
+                            alertBox.style.display = 'block';
+                            setTimeout(function() { alertBox.style.display = 'none'; }, 3000);
+                        }
+                    });
+                });
+            }
+
+            var phoneInput = document.getElementById('user-identifier-phone');
+            if(phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    var pVal = this.value.trim();
+                    if(pVal.length >= 8) {
+                        loadUserChats(pVal);
+                    }
+                });
+            }
+
+            if(sessionStorage.getItem('badea_admin_logged') === 'true') {
+                var loginCard = document.getElementById('admin-login-card');
+                var adminPanel = document.getElementById('admin-panel');
+                if (loginCard) loginCard.style.display = 'none';
+                if (adminPanel) adminPanel.style.display = 'block';
+                loadAdminData();
+            }
+
+            var adminLoginBtn = document.getElementById('admin-login-btn');
+            if(adminLoginBtn) {
+                adminLoginBtn.addEventListener('click', function() {
+                    var passInput = document.getElementById('admin-pass');
+                    if(passInput && passInput.value === "Badea9191") {
+                        sessionStorage.setItem('badea_admin_logged', 'true');
+                        var loginCard = document.getElementById('admin-login-card');
+                        var adminPanel = document.getElementById('admin-panel');
+                        if (loginCard) loginCard.style.display = 'none';
+                        if (adminPanel) adminPanel.style.display = 'block';
+                        loadAdminData();
+                    } else {
+                        alert('كلمة المرور غير صحيحة!');
+                    }
+                });
+            }
+
+            var adminLogoutBtn = document.getElementById('admin-logout-btn');
+            if(adminLogoutBtn) {
+                adminLogoutBtn.addEventListener('click', function() {
+                    sessionStorage.removeItem('badea_admin_logged');
+                    window.location.reload();
+                });
+            }
+        });
+
+        function bookSpecificPackage(pkgName) {
+            var checkboxes = document.querySelectorAll('input[name="lab_tests"]');
+            checkboxes.forEach(function(cb) {
+                cb.checked = (cb.value === pkgName);
+            });
+        }
+    </script>
+</body>
+</html>
